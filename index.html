@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mon Permis">
+<meta name="theme-color" content="#1a1a2e">
+<title>Mon Planning — La Méthode Permis</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#1a9ed4;--blue-l:#e8f6fd;--blue-d:#1585b5;
+  --red:#e63946;--dark:#1a1a2e;--navy:#17305a;
+  --text:#1f2937;--muted:#6b7280;--border:#e5e7eb;
+  --bg:#f3f4f6;--white:#fff;
+  --green:#16a34a;--green-l:#dcfce7;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --orange:#ea580c;--orange-l:#fff7ed;
+  --purple:#7c3aed;--purple-l:#f5f3ff;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── NAV BAR ── */
+.navbar{
+  background:var(--dark);
+  padding:calc(12px + var(--safe-top)) 16px 12px;
+  position:sticky;top:0;z-index:100;
+}
+.navbar-inner{display:flex;align-items:center;gap:10px;}
+.navbar-logo{font-size:22px;flex-shrink:0;}
+.navbar-title{flex:1;}
+.navbar-title .brand{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--red);text-transform:uppercase;display:block;margin-bottom:1px;}
+.navbar-title .sub{font-size:11px;color:rgba(255,255,255,.45);font-weight:500;}
+
+/* ── HERO ── */
+.hero{
+  background:var(--white);
+  border-bottom:3px solid var(--blue);
+  padding:20px 16px 16px;
+}
+.hero h1{font-size:22px;font-weight:800;color:var(--dark);letter-spacing:-.3px;line-height:1.2;margin-bottom:4px;}
+.hero p{font-size:13px;color:var(--muted);margin-bottom:14px;}
+
+.mbadges{display:flex;gap:6px;flex-wrap:wrap;}
+.mb{
+  font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 10px;border-radius:4px;border:1.5px solid var(--blue);
+  color:var(--blue);background:white;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .15s;
+}
+.mb.on{background:var(--blue);color:white;}
+.mb.m2{border-color:var(--amber);color:var(--amber);}
+.mb.m2.on{background:var(--amber);color:white;border-color:var(--amber);}
+.mb.m3{border-color:var(--orange);color:var(--orange);}
+.mb.m3.on{background:var(--orange);color:white;border-color:var(--orange);}
+
+/* ── SCROLL CONTENT ── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(16px + var(--safe-bot));}
+
+/* ── FORM CARD ── */
+.card{background:var(--white);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.card-head{background:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:9px;}
+.card-head h2{font-size:11px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.06em;text-transform:uppercase;}
+.num-dot{width:22px;height:22px;border-radius:50%;background:var(--blue);color:white;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card-body{padding:16px;}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.field select,.field input[type=date]{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:15px;color:var(--text);background:white;font-family:inherit;
+  -webkit-appearance:auto;appearance:auto;
+}
+.field select:focus,.field input[type=date]:focus{outline:none;border-color:var(--blue);}
+
+.info-box{
+  display:none;padding:11px 13px;border-radius:10px;font-size:13px;
+  line-height:1.55;margin-bottom:12px;border-left:3px solid var(--blue);
+  background:var(--blue-l);color:var(--navy);
+}
+.info-box.show{display:block;}
+.info-box.m2{border-color:var(--amber);background:var(--amber-l);color:#78350f;}
+.info-box.m3{border-color:var(--orange);background:var(--orange-l);color:#7c2d12;}
+
+.gen-btn{
+  width:100%;padding:15px;background:var(--blue);color:white;border:none;
+  border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:inherit;display:flex;align-items:center;justify-content:center;gap:9px;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
+.gen-btn:active{opacity:.8;}
+
+/* ── RESULT ── */
+#result{display:none;}
+#result.show{display:block;}
+
+.res-label{
+  background:var(--dark);border-radius:12px 12px 0 0;
+  padding:12px 16px;font-size:10px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);
+}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;background:white;border:1px solid var(--border);border-top:none;}
+.stat{padding:14px 8px;text-align:center;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.sv{font-size:20px;font-weight:800;color:var(--dark);line-height:1;margin-bottom:3px;}
+.sv.sm{font-size:13px;}
+.sv.acc{color:var(--amber);}
+.sl{font-size:10px;color:var(--muted);font-weight:500;}
+
+.alert-zone{border:1px solid var(--border);border-top:none;background:white;}
+.alert{padding:12px 14px;font-size:13px;font-weight:500;line-height:1.5;border-left:3px solid;}
+.al-amber{background:var(--amber-l);color:#78350f;border-color:var(--amber);}
+.al-red{background:#fee2e2;color:#7f1d1d;border-color:#e63946;}
+
+.steps{
+  border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;
+  background:var(--bg);padding:14px;display:flex;flex-direction:column;gap:10px;
+  margin-bottom:16px;
+}
+
+.sc{background:white;border-radius:12px;border:1px solid var(--border);display:flex;align-items:stretch;overflow:hidden;}
+.sn{
+  width:42px;min-width:42px;display:flex;align-items:center;justify-content:center;
+  background:var(--blue-l);font-size:14px;font-weight:800;color:var(--blue);
+  border-right:1px solid var(--border);
+}
+.sn.now{background:var(--blue);color:white;border-right-color:var(--blue-d);}
+.sb{padding:12px 14px;flex:1;min-width:0;}
+.sd{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.st{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:4px;line-height:1.3;}
+.sx{font-size:12px;color:var(--muted);line-height:1.5;}
+.stags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.t-amber{background:var(--amber-l);color:var(--amber);}
+.t-blue{background:var(--blue-l);color:var(--blue);}
+.t-green{background:var(--green-l);color:var(--green);}
+.t-orange{background:var(--orange-l);color:var(--orange);}
+.t-purple{background:var(--purple-l);color:var(--purple);}
+.t-red{background:#fee2e2;color:#b91c1c;}
+
+.print-btn{
+  width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);
+  border-radius:12px;font-size:14px;font-weight:600;color:var(--muted);
+  cursor:pointer;font-family:inherit;margin-bottom:14px;
+  -webkit-tap-highlight-color:transparent;
+}
+.print-btn:active{border-color:var(--blue);color:var(--blue);}
+
+.disclaimer{
+  background:var(--blue-l);border-left:3px solid var(--blue);border-radius:10px;
+  padding:13px 14px;font-size:12px;color:var(--navy);line-height:1.6;margin-bottom:14px;
+}
+
+/* ── INSTALL BANNER ── */
+.install-banner{
+  display:none;background:var(--blue);padding:14px 16px;
+  border-radius:14px;margin-bottom:14px;
+  flex-direction:column;gap:8px;
+}
+.install-banner.show{display:flex;}
+.install-title{font-size:14px;font-weight:700;color:white;}
+.install-sub{font-size:12px;color:rgba(255,255,255,.8);line-height:1.4;}
+.install-actions{display:flex;gap:8px;margin-top:2px;}
+.install-yes{
+  flex:1;padding:10px;background:white;color:var(--blue);border:none;
+  border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.install-no{
+  padding:10px 14px;background:rgba(255,255,255,.2);color:white;border:none;
+  border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;
+}
+
+/* ── IOS HINT ── */
+.ios-hint{
+  display:none;background:var(--dark);color:white;padding:14px 16px;
+  border-radius:14px;margin-bottom:14px;font-size:13px;line-height:1.6;
+}
+.ios-hint.show{display:block;}
+.ios-hint strong{color:var(--blue);}
+
+.note{text-align:center;font-size:11px;color:var(--muted);font-style:italic;margin-bottom:20px;}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);padding:20px 16px calc(20px + var(--safe-bot));text-align:center;}
+footer .fb{font-size:10px;font-weight:800;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px;}
+footer .fc{font-size:11px;color:rgba(255,255,255,.22);line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <span class="navbar-logo">🚗</span>
+    <div class="navbar-title">
+      <span class="brand">La Méthode Permis</span>
+      <span class="sub">Pack Les Suspensions</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Mon planning personnalisé</h1>
+  <p>Entrez votre profil pour obtenir vos dates exactes.</p>
+  <div class="mbadges">
+    <span class="mb on" id="b1">Module 1</span>
+    <span class="mb m2" id="b2">Module 2</span>
+    <span class="mb m3" id="b3">Module 3</span>
+  </div>
+</div>
+
+<!-- SCROLL -->
+<div class="scroll" id="scroll">
+
+  <!-- INSTALL BANNER -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-title">📱 Installer l'application</div>
+    <div class="install-sub">Ajoutez cette app à votre écran d'accueil pour y accéder sans internet, comme une vraie application.</div>
+    <div class="install-actions">
+      <button class="install-yes" id="installBtn">Installer</button>
+      <button class="install-no" onclick="document.getElementById('installBanner').classList.remove('show')">Plus tard</button>
+    </div>
+  </div>
+
+  <!-- IOS HINT -->
+  <div class="ios-hint" id="iosHint">
+    📱 <strong>Installer sur iPhone :</strong> appuyez sur <strong>le bouton Partager</strong> (carré avec flèche vers le haut) puis <strong>"Sur l'écran d'accueil"</strong>.
+    <br><br>
+    <button class="print-btn" onclick="document.getElementById('iosHint').classList.remove('show')" style="margin:0;padding:8px 14px;font-size:12px;width:auto;">Fermer</button>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num-dot">1</div>
+      <h2>Votre profil de démarche</h2>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Type de démarche</label>
+        <select id="typeSelect" onchange="onTypeChange()">
+          <option value="1">Module 1 — Suspension &lt; 6 mois, sans alcool/stupéfiant</option>
+          <option value="2">Module 2 — Suspension ≥ 6 mois, sans alcool/stupéfiant</option>
+          <option value="3">Module 3 — Infraction alcool &amp; / ou stupéfiants</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date de fin de suspension</label>
+        <input type="date" id="dateInput" />
+      </div>
+      <div class="info-box" id="infoBox"></div>
+      <button class="gen-btn" onclick="generer()">&#128197;&nbsp; Générer mon planning</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result">
+    <div class="res-label" id="resLabel"></div>
+    <div class="stats">
+      <div class="stat"><div class="sv sm" id="sDate"></div><div class="sl">Fin de suspension</div></div>
+      <div class="stat"><div class="sv acc" id="sJours"></div><div class="sl">Avant le lancement</div></div>
+      <div class="stat"><div class="sv" id="sEtapes"></div><div class="sl">Étapes</div></div>
+    </div>
+    <div class="alert-zone" id="alertZone"></div>
+    <div class="steps" id="stepsZone"></div>
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimer ce planning</button>
+    <div class="disclaimer">
+      <strong>Avertissement légal.</strong> Ce planning est un outil d'accompagnement administratif fourni à titre informatif. Il ne constitue pas un conseil juridique. Anticipez toujours de 3 à 5 jours par rapport aux dates affichées.
+    </div>
+  </div>
+
+  <p class="note">© 2026 Thomas David / La Méthode Permis. Tous droits réservés.</p>
+
+</div><!-- /scroll -->
+
+<footer>
+  <div class="fb">🚗 La Méthode Permis — Pack Les Suspensions</div>
+  <div class="fc">Outil d'accompagnement administratif. Usage personnel. Non transmissible.<br>Ce document ne constitue pas un conseil juridique ou un avis de droit.</div>
+</footer>
+
+</div><!-- /app -->
+
+<script>
+var today = new Date();
+today.setHours(0,0,0,0);
+
+// Default date
+var di = document.getElementById('dateInput');
+var def = new Date(today.getTime());
+def.setDate(def.getDate() + 38);
+di.value = def.toISOString().split('T')[0];
+
+var JFR = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+var MFR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+function fmt(d){return JFR[d.getDay()]+' '+d.getDate()+' '+MFR[d.getMonth()]+' '+d.getFullYear();}
+function fmtC(d){var m=MFR[d.getMonth()];return d.getDate()+' '+m.charAt(0).toUpperCase()+m.slice(1)+' '+d.getFullYear();}
+function fmtM(d){return JFR[d.getDay()].replace('.','').toUpperCase()+'. '+d.getDate()+' '+MFR[d.getMonth()].toUpperCase()+' '+d.getFullYear();}
+function add(d,n){var r=new Date(d.getTime());r.setDate(r.getDate()+n);return r;}
+function diff(a,b){return Math.round((b.getTime()-a.getTime())/86400000);}
+
+var INFOS = {
+  '1':{cls:'',txt:'Module 1 — Pas de tests psychotechniques ni de commission médicale. Une seule visite chez un médecin agréé en ville. Coût estimé : 45 à 50 €.'},
+  '2':{cls:'m2',txt:'Module 2 — Tests psychotechniques obligatoires (centre agréé) + visite médicale. Pas de commission médicale en préfecture. Coût estimé : 110 à 165 €.'},
+  '3':{cls:'m3',txt:'Module 3 — Tests psychotechniques + analyses médicales (sang/urine) + commission médicale de préfecture. Démarche la plus complète. Coût estimé : 150 à 260 €.'}
+};
+
+function onTypeChange(){
+  var v = document.getElementById('typeSelect').value;
+  var info = INFOS[v];
+  var el = document.getElementById('infoBox');
+  el.textContent = info.txt;
+  el.className = 'info-box show'+(info.cls?' '+info.cls:'');
+  for(var n=1;n<=3;n++){
+    var b=document.getElementById('b'+n);
+    var base=n===2?'m2':n===3?'m3':'';
+    b.className='mb'+(base?' '+base:'')+(String(n)===v?' on':'');
+  }
+}
+onTypeChange();
+
+function getEtapes(type,fin){
+  if(type==='1')return[
+    {d:add(fin,-35),t:'Jour J\u221235 \u2014 Lancement',x:'Créer votre compte ANTS, faire la demande "Fin de suspension", mettre le dossier en attente. Prendre RDV chez un médecin agréé en ville.',tags:[]},
+    {d:add(fin,-21),t:'Jour J\u221221 \u2014 Visite médicale',x:'Rendez-vous chez le médecin agréé. Récupérer le CERFA 14880*03 avec avis favorable.',tags:[{l:'Valable jusqu\'à fin de suspension',c:'amber'}]},
+    {d:add(fin,-20),t:'Jour J\u221220 \u2014 Finalisation ANTS',x:'Reprendre la demande en attente sur ANTS. Envoyer l\'avis médical, le justificatif de domicile et la pièce d\'identité.',tags:[{l:'Action en ligne',c:'blue'}]},
+    {d:fin,t:'Jour J \u2014 Fin de suspension',x:'Votre ADCS est disponible dans votre espace ANTS. Téléchargez-la et conservez-la dans le véhicule.',tags:[{l:'ADCS disponible',c:'green'}]},
+    {d:add(fin,15),t:'Vers J+15 \u2014 Réception du permis',x:'Votre nouvelle carte de permis est envoyée par courrier suivi, environ 15 à 20 jours après validation du dossier.',tags:[]}
+  ];
+  if(type==='2')return[
+    {d:add(fin,-35),t:'Jour J\u221235 \u2014 Lancement & Constitution',x:'Créer compte ANTS, demande "Fin de suspension" en attente. Prendre RDV tests psychotechniques ET médecin agréé.',tags:[]},
+    {d:add(fin,-21),t:'Jour J\u221221 \u2014 Tests psychotechniques',x:'Passage des tests psychotechniques au centre agréé. Apportez : pièce d\'identité, 2 enveloppes vierges (22x11 cm) et 2 timbres.',tags:[{l:'Valables 6 mois',c:'amber'}]},
+    {d:add(fin,-19),t:'Jour J\u221219 \u2014 Expertise médicale',x:'Visite chez le médecin agréé. Apporter vos résultats des tests psychotechniques. Récupérer le CERFA 14880*03 avec avis favorable.',tags:[{l:'Résultats tests requis',c:'orange'}]},
+    {d:add(fin,-18),t:'Jour J\u221218 \u2014 Finalisation ANTS',x:'Reprendre la demande en attente sur ANTS. Envoyer l\'avis médical, les résultats des tests psychotechniques et les documents relatifs à la suspension.',tags:[{l:'Action en ligne',c:'blue'}]},
+    {d:fin,t:'Jour J \u2014 Fin de suspension',x:'Votre ADCS est disponible dans votre espace ANTS. Téléchargez-la et conservez-la dans le véhicule.',tags:[{l:'ADCS disponible',c:'green'}]},
+    {d:add(fin,20),t:'Vers J+20 \u2014 Réception du permis',x:'Votre nouvelle carte de permis est envoyée par courrier suivi, environ 15 à 20 jours après validation du dossier.',tags:[]}
+  ];
+  if(type==='3')return[
+    {d:add(fin,-47),t:'Jour J\u221247 \u2014 Lancement & Constitution',x:'Créer compte ANTS, demande "Fin de suspension" en attente. Prendre RDV : tests psychotechniques, analyses médicales ET commission médicale de la préfecture.',tags:[]},
+    {d:add(fin,-33),t:'Jour J\u221233 \u2014 Tests psychotechniques',x:'Passage des tests psychotechniques au centre agréé. Apportez : pièce d\'identité, 2 enveloppes vierges (22x11 cm), 2 timbres, lunettes de vue si nécessaire.',tags:[{l:'Valables 6 mois',c:'amber'}]},
+    {d:add(fin,-32),t:'Jour J\u221232 \u2014 Analyses médicales',x:'Réalisation des analyses médicales : prise de sang alcool et/ou analyse urine/sang stupéfiants selon vos antécédents. Muni de l\'ordonnance téléchargée sur ANTS.',tags:[{l:'Valables 15 jours seulement',c:'red'}]},
+    {d:add(fin,-22),t:'Jour J\u221222 \u2014 Commission médicale',x:'Visite à la commission médicale de votre préfecture. Apporter : tests psychotechniques, analyses médicales (moins de 15 jours) et CERFA 14880*03 pré-rempli.',tags:[{l:'Préfecture obligatoire',c:'purple'},{l:'Analyses moins de 15j',c:'red'}]},
+    {d:add(fin,-21),t:'Jour J\u221221 \u2014 Finalisation ANTS',x:'Reprendre la demande en attente sur ANTS. Envoyer l\'avis médical, résultats tests psychotechniques, analyses médicales et documents relatifs à la suspension.',tags:[{l:'Action en ligne',c:'blue'}]},
+    {d:fin,t:'Jour J \u2014 Fin de suspension',x:'Votre ADCS est disponible dans votre espace ANTS. Téléchargez-la et conservez-la dans le véhicule.',tags:[{l:'ADCS disponible',c:'green'}]},
+    {d:add(fin,20),t:'Vers J+20 \u2014 Réception du permis',x:'Votre nouvelle carte de permis est envoyée par courrier suivi, environ 15 à 20 jours après validation du dossier.',tags:[]}
+  ];
+  return[];
+}
+
+function generer(){
+  var val=document.getElementById('dateInput').value;
+  if(!val){alert('Veuillez sélectionner une date de fin de suspension.');return;}
+  var type=document.getElementById('typeSelect').value;
+  var fin=new Date(val+'T12:00:00');
+  var etapes=getEtapes(type,fin);
+
+  document.getElementById('resLabel').textContent='VOTRE CALENDRIER — FIN DE SUSPENSION LE '+fmtM(fin);
+  document.getElementById('sDate').textContent=fmtC(fin);
+
+  var lance=etapes[0].d;
+  var jA=diff(today,lance);
+  document.getElementById('sJours').textContent=jA>0?jA+' j':(jA===0?"Aujourd'hui":'Passé');
+  document.getElementById('sEtapes').textContent=etapes.length;
+
+  var az=document.getElementById('alertZone');
+  az.innerHTML='';
+  if(type==='3'){az.innerHTML='<div class="alert al-red">⚠️ Les analyses médicales ne sont valables que <strong>15 jours</strong>. Planifiez-les le plus tard possible avant la commission médicale.</div>';}
+  else if(type==='2'){az.innerHTML='<div class="alert al-amber">ℹ️ Les résultats des tests psychotechniques sont valables <strong>6 mois</strong>. Présentez-les lors de la visite médicale.</div>';}
+
+  var sz=document.getElementById('stepsZone');
+  sz.innerHTML='';
+  for(var i=0;i<etapes.length;i++){
+    var e=etapes[i];
+    var isT=diff(today,e.d)===0;
+    var th='';
+    for(var j=0;j<e.tags.length;j++){th+='<span class="tag t-'+e.tags[j].c+'">'+e.tags[j].l+'</span>';}
+    var c=document.createElement('div');
+    c.className='sc';
+    c.innerHTML='<div class="sn'+(isT?' now':'')+'">'+( i+1)+'</div><div class="sb"><div class="sd">'+fmt(e.d)+'</div><div class="st">'+e.t+'</div><div class="sx">'+e.x+'</div>'+(th?'<div class="stags">'+th+'</div>':'')+'</div>';
+    sz.appendChild(c);
+  }
+
+  var r=document.getElementById('result');
+  r.style.display='block';
+  r.className='show';
+
+  // Scroll to result
+  setTimeout(function(){
+    var sc=document.getElementById('scroll');
+    var top=r.offsetTop-20;
+    sc.scrollTo({top:top,behavior:'smooth'});
+  },100);
+}
+
+// ── PWA INSTALL ──
+var deferredPrompt=null;
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBanner').classList.add('show');
+});
+
+document.getElementById('installBtn').addEventListener('click',function(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(){
+      deferredPrompt=null;
+      document.getElementById('installBanner').classList.remove('show');
+    });
+  }
+});
+
+// iOS detection
+var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+var isInStandalone=('standalone' in window.navigator)&&window.navigator.standalone;
+if(isIOS&&!isInStandalone){
+  document.getElementById('iosHint').classList.add('show');
+}
+
+// Auto-generate
+generer();
+</script>
+</body>
+</html>
